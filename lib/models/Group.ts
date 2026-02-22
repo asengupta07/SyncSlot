@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import "@/lib/models/User"; // Register User before refs
 
 const groupSchema = new mongoose.Schema(
   {

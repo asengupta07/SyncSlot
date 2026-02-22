@@ -1,4 +1,8 @@
 import mongoose from "mongoose";
+// Ensure models are registered before any DB operations (fixes MissingSchemaError in deployment)
+import "@/lib/models/User";
+import "@/lib/models/Group";
+import "@/lib/models/Availability";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 

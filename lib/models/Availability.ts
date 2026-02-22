@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import "@/lib/models/User"; // Register User before refs
+import "@/lib/models/Group"; // Register Group before refs
 
 const intervalSchema = new mongoose.Schema(
   {
