@@ -12,11 +12,13 @@ if (!MONGODB_URI) {
   process.exit(1);
 }
 
+const uri: string = MONGODB_URI;
+
 async function clearUsers() {
-  await mongoose.connect(MONGODB_URI);
-  const result = await mongoose.connection.db
-    .collection("users")
-    .deleteMany({});
+  await mongoose.connect(uri);
+  const db = mongoose.connection.db;
+  if (!db) throw new Error("Database not connected");
+  const result = await db.collection("users").deleteMany({});
   console.log(`Deleted ${result.deletedCount} user(s)`);
   await mongoose.disconnect();
 }
