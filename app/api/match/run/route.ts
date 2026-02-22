@@ -30,21 +30,39 @@ export async function POST(request: Request) {
     );
     const userMap = new Map(users.map((u) => [u._id.toString(), u.name]));
 
-    const participantAvailabilities = availabilities.map((a) => ({
-      userId: a.userId.toString(),
-      userName: userMap.get(a.userId.toString()) ?? "Unknown",
-      intervals: a.intervals.map((i: { start: Date; end: Date }) => ({
-        start: i.start.toISOString(),
-        end: i.end.toISOString(),
-      })),
-    }));
+    const userIdsWithAvailability = new Set<string>();
+    const participantAvailabilities = availabilities
+      .filter((a) => (a.intervals?.length ?? 0) > 0)
+      .map((a) => {
+        const uid = a.userId.toString();
+        userIdsWithAvailability.add(uid);
+        return {
+          userId: uid,
+          userName: userMap.get(uid) ?? "Unknown",
+          intervals: a.intervals.map((i: { start: Date; end: Date }) => ({
+            start: i.start.toISOString(),
+            end: i.end.toISOString(),
+          })),
+        };
+      });
+
+    const membersWithoutAvailability = group.members
+      .map((m: { toString: () => string }) => m.toString())
+      .filter((uid: string) => !userIdsWithAvailability.has(uid))
+      .map((uid: string) => ({
+        userId: uid,
+        userName: userMap.get(uid) ?? "Unknown",
+      }));
 
     const result = runMatchingEngine(participantAvailabilities, {
       durationMinutes: durationMinutes ?? 30,
       minParticipants: minParticipants ?? 1,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({
+      ...result,
+      membersWithoutAvailability,
+    });
   } catch (error) {
     console.error("Match run error:", error);
     return NextResponse.json(

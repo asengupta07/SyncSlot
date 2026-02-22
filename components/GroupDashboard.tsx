@@ -81,8 +81,20 @@ export function GroupDashboard({ group }: GroupDashboardProps) {
               Finalised time
             </h2>
             <p className="text-green-700 dark:text-green-300">
-              {new Date(group.finalisedSlot.start).toLocaleString()} –{" "}
-              {new Date(group.finalisedSlot.end).toLocaleString()}
+              {new Date(group.finalisedSlot.start).toLocaleString([], {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })}{" "}
+              –{" "}
+              {new Date(group.finalisedSlot.end).toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })}
             </p>
           </div>
         )}

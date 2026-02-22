@@ -59,8 +59,20 @@ export function FinaliseSlot({
           Time finalised
         </h2>
         <p className="text-zinc-600 dark:text-zinc-400">
-          {new Date(finalisedSlot.start).toLocaleString()} –{" "}
-          {new Date(finalisedSlot.end).toLocaleString()}
+          {new Date(finalisedSlot.start).toLocaleString([], {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })}{" "}
+          –{" "}
+          {new Date(finalisedSlot.end).toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })}
         </p>
       </div>
     );
@@ -96,8 +108,9 @@ export function FinaliseSlot({
               weekday: "short",
               month: "short",
               day: "numeric",
-              hour: "2-digit",
+              hour: "numeric",
               minute: "2-digit",
+              hour12: true,
             })}
           </button>
         ))}

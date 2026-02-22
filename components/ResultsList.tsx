@@ -41,10 +41,19 @@ export function ResultsList({ windows, totalParticipants }: ResultsListProps) {
           >
             <div>
               <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                {new Date(w.start).toLocaleString()} –{" "}
-                {new Date(w.end).toLocaleTimeString([], {
-                  hour: "2-digit",
+                {new Date(w.start).toLocaleString([], {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
                   minute: "2-digit",
+                  hour12: true,
+                })}{" "}
+                –{" "}
+                {new Date(w.end).toLocaleTimeString([], {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
                 })}
               </p>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">

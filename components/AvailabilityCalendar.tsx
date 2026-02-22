@@ -94,6 +94,35 @@ export function AvailabilityCalendar({
     return allSlotKeysRef.current.filter((k) => k >= low && k <= high);
   }
 
+  function getSlotsForDay(day: Date): string[] {
+    const dy = day.getFullYear();
+    const dm = day.getMonth();
+    const dd = day.getDate();
+    return allSlotKeysRef.current.filter((k) => {
+      const d = new Date(k);
+      return d.getFullYear() === dy && d.getMonth() === dm && d.getDate() === dd;
+    });
+  }
+
+  const isDayFullySelected = (day: Date) => {
+    const slots = getSlotsForDay(day);
+    return slots.length > 0 && slots.every((k) => selected.has(k));
+  };
+
+  const handleToggleDay = (day: Date) => {
+    const slots = getSlotsForDay(day);
+    const allSelected = slots.every((k) => selected.has(k));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const k of slots) {
+        if (allSelected) next.delete(k);
+        else next.add(k);
+      }
+      saveAvailability(next);
+      return next;
+    });
+  };
+
   const fetchAvailability = useCallback(async () => {
     try {
       const res = await fetch(`/api/availability/me?groupId=${groupId}`);
@@ -256,20 +285,47 @@ export function AvailabilityCalendar({
           Saving…
         </p>
       )}
-      <div className="overflow-x-auto -mx-3 sm:mx-0 overflow-y-auto overscroll-contain">
-        <div className="min-w-[480px] sm:min-w-[800px] px-3 sm:px-0">
-          <div className="mb-2 grid gap-0.5 sm:gap-1 text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-400">
+      <div className="overflow-x-auto -mx-3 sm:mx-0 overflow-y-auto overscroll-contain touch-pan-x" style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
+        <div
+          className="px-3 sm:px-0"
+          style={{
+            minWidth: `max(100%, ${52 + days.length * 56}px)`,
+          }}
+        >
+          <div className="mb-2 grid gap-1 sm:gap-1 text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">
             <div
               className="grid"
               style={{
-                gridTemplateColumns: `minmax(44px,44px) repeat(${days.length}, minmax(28px,1fr))`,
+                gridTemplateColumns: `minmax(52px,52px) repeat(${days.length}, minmax(56px,1fr))`,
               }}
             >
               <div />
               {days.map((d) => (
-                <div key={d.toISOString()} className="text-center font-medium truncate">
+                <div key={d.toISOString()} className="text-center font-medium truncate px-0.5">
                   {format(d, "EEE M/d")}
                 </div>
+              ))}
+            </div>
+            <div
+              className="grid gap-1 sm:gap-1"
+              style={{
+                gridTemplateColumns: `minmax(52px,52px) repeat(${days.length}, minmax(56px,1fr))`,
+              }}
+            >
+              <div />
+              {days.map((d) => (
+                <button
+                  key={d.toISOString()}
+                  type="button"
+                  onClick={() => handleToggleDay(d)}
+                  className={`min-h-[36px] sm:min-h-[24px] rounded-md text-[11px] sm:text-xs font-medium transition-colors touch-manipulation [-webkit-tap-highlight-color:transparent] px-1 ${
+                    isDayFullySelected(d)
+                      ? "bg-emerald-500 text-white hover:bg-emerald-600"
+                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  All day
+                </button>
               ))}
             </div>
           </div>
@@ -278,12 +334,12 @@ export function AvailabilityCalendar({
               Array.from({ length: slotsPerHour }).map((_, slotIndex) => (
                 <div
                   key={`${hour}-${slotIndex}`}
-                  className="grid gap-0.5 sm:gap-1"
+                  className="grid gap-1 sm:gap-1"
                   style={{
-                    gridTemplateColumns: `minmax(44px,44px) repeat(${days.length}, minmax(28px,1fr))`,
+                    gridTemplateColumns: `minmax(52px,52px) repeat(${days.length}, minmax(56px,1fr))`,
                   }}
                 >
-                  <div className="py-0.5 pr-1 sm:pr-2 text-right text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-400">
+                  <div className="py-1 pr-2 text-right text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">
                     {slotIndex === 0 &&
                       format(addMinutes(start, hour * 60), "h a")}
                   </div>
@@ -295,7 +351,7 @@ export function AvailabilityCalendar({
                         key={key}
                         type="button"
                         data-slot-key={key}
-                        className={`min-h-[28px] sm:min-h-0 sm:h-4 rounded transition-colors touch-manipulation select-none active:scale-[0.98] [-webkit-tap-highlight-color:transparent] ${
+                        className={`min-h-[36px] sm:min-h-0 sm:h-4 rounded-md transition-colors touch-manipulation select-none active:scale-[0.98] [-webkit-tap-highlight-color:transparent] ${
                           selectedSlot
                             ? "bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-600"
                             : "bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 active:bg-zinc-200 dark:active:bg-zinc-700"
@@ -318,7 +374,7 @@ export function AvailabilityCalendar({
         </div>
       </div>
       <p className="mt-3 sm:mt-4 text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">
-        Green = available. Tap and drag to select or deselect.
+        Green = available. Use &quot;All day&quot; above each column or tap and drag to select.
       </p>
     </div>
   );

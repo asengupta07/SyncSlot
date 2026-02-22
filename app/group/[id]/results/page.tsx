@@ -6,14 +6,18 @@ import { PageHeader } from "@/components/PageHeader";
 
 async function getGroup(id: string) {
   await connectDB();
-  const group = await Group.findById(id);
+  const group = await Group.findById(id).populate("members", "name");
   if (!group) return null;
+  const members = (group.members as { _id: { toString: () => string }; name: string }[]).map(
+    (m) => ({ _id: m._id.toString(), name: m.name ?? "Unknown" })
+  );
   return {
     _id: group._id.toString(),
     name: group.name,
     creatorId: group.creatorId.toString(),
     startDate: group.startDate.toISOString(),
     endDate: group.endDate.toISOString(),
+    members,
     finalisedSlot:
       group.finalisedSlot?.start && group.finalisedSlot?.end
         ? {
