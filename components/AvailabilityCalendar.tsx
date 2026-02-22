@@ -10,7 +10,8 @@ import {
 } from "date-fns";
 
 const SLOT_MINUTES = 15;
-const HOURS = 24;
+const HOUR_START = 12; // noon
+const HOUR_END = 22; // 10 pm (exclusive)
 
 interface AvailabilityCalendarProps {
   groupId: string;
@@ -77,7 +78,7 @@ export function AvailabilityCalendar({
   if (allSlotKeysRef.current.length === 0) {
     const keys: string[] = [];
     days.forEach((day) => {
-      for (let h = 0; h < HOURS; h++) {
+      for (let h = HOUR_START; h < HOUR_END; h++) {
         for (let s = 0; s < 60 / SLOT_MINUTES; s++) {
           keys.push(getSlotKey(day, h, s));
         }
@@ -104,7 +105,11 @@ export function AvailabilityCalendar({
         let t = new Date(i.start).getTime();
         const endTime = new Date(i.end).getTime();
         while (t < endTime) {
-          slots.add(new Date(t).toISOString());
+          const d = new Date(t);
+          const hour = d.getHours();
+          if (hour >= HOUR_START && hour < HOUR_END) {
+            slots.add(d.toISOString());
+          }
           t += SLOT_MINUTES * 60 * 1000;
         }
       }
@@ -269,7 +274,7 @@ export function AvailabilityCalendar({
             </div>
           </div>
           <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto overscroll-contain">
-            {Array.from({ length: HOURS }).map((_, hour) =>
+            {Array.from({ length: HOUR_END - HOUR_START }, (_, i) => HOUR_START + i).map((hour) =>
               Array.from({ length: slotsPerHour }).map((_, slotIndex) => (
                 <div
                   key={`${hour}-${slotIndex}`}

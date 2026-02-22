@@ -10,6 +10,8 @@ import {
 } from "date-fns";
 
 const SLOT_MINUTES = 30;
+const HOUR_START = 12; // noon
+const HOUR_END = 22; // 10 pm (exclusive)
 
 interface MatchWindow {
   start: string;
@@ -34,13 +36,14 @@ export function ResultsHeatmap({
   const start = startOfDay(parseISO(startDate));
   const end = parseISO(endDate);
   const days = eachDayOfInterval({ start, end });
-  const hoursPerDay = 24;
   const slotsPerHour = 60 / SLOT_MINUTES;
+  const totalSlots = (HOUR_END - HOUR_START) * slotsPerHour;
 
   const getCount = (day: Date, slotIndex: number) => {
     const slotStart = addMinutes(
       startOfDay(day),
-      Math.floor(slotIndex / slotsPerHour) * 60 +
+      HOUR_START * 60 +
+        Math.floor(slotIndex / slotsPerHour) * 60 +
         (slotIndex % slotsPerHour) * SLOT_MINUTES
     );
     const slotEnd = addMinutes(slotStart, SLOT_MINUTES);
@@ -101,8 +104,7 @@ export function ResultsHeatmap({
                 </div>
               ))}
             </div>
-            {Array.from({ length: hoursPerDay * slotsPerHour }).map(
-              (_, slotIndex) => (
+            {Array.from({ length: totalSlots }).map((_, slotIndex) => (
                 <div
                   key={slotIndex}
                   className="grid gap-1"
@@ -113,7 +115,11 @@ export function ResultsHeatmap({
                   <div className="py-0.5 pr-2 text-right text-xs text-zinc-500 dark:text-zinc-400">
                     {slotIndex % slotsPerHour === 0 &&
                       format(
-                        addMinutes(start, (slotIndex / slotsPerHour) * 60),
+                        addMinutes(
+                          start,
+                          HOUR_START * 60 +
+                            Math.floor(slotIndex / slotsPerHour) * 60
+                        ),
                         "h a"
                       )}
                   </div>
